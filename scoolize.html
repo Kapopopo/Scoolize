@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur Parcoursup - Espace Candidat</title>
+    <link rel="stylesheet" href="scoolize.css">
+    <script src="scoolize.js" defer></script>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo-bloc">
+            <span>RÉPUBLIQUE</span>
+            <span>FRANÇAISE</span>
+        </div>
+        <div class="header-title">
+            <h1>Parcoursup <span style="font-size:0.8em; font-weight:normal;"></span></h1>
+        </div>
+
+        <div id="auth-section">
+            <button id="open-auth-btn" class="login-btn-header">Se connecter</button>
+            <div id="user-display" style="display:none;">
+                <span id="user-name">Candidat</span>
+                <a href="#" id="logout-link">Se déconnecter</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="search-container">
+        <h2>Rechercher une formation</h2>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Ex: Droit, MMI, BTS SIO, Sorbonne...">
+            <button id="search-btn">Rechercher</button>
+        </div>
+    </section>
+
+    <section class="student-tools">
+        <div class="tool-card">
+            <h2>Questionnaire d’orientation</h2>
+            <p class="tool-subtitle">
+                Réponds à quelques questions et on te propose des formations adaptées.
+            </p>
+
+            <div class="tool-form">
+                <div class="form-group inline">
+                    <label for="q-domain">Domaine qui t’intéresse</label>
+                    <select id="q-domain">
+                        <option value="">Je ne sais pas encore</option>
+                        <option value="info">Informatique / Numérique</option>
+                        <option value="commerce">Commerce / Gestion</option>
+                        <option value="sante">Santé / Social</option>
+                        <option value="sciences">Sciences / Ingénierie</option>
+                        <option value="lettres">Lettres / Langues</option>
+                    </select>
+                </div>
+
+                <div class="form-group inline">
+                    <label for="q-type">Type de formation</label>
+                    <select id="q-type">
+                        <option value="">Peu importe</option>
+                        <option value="BUT">BUT</option>
+                        <option value="BTS">BTS</option>
+                        <option value="LICENCE">Licence</option>
+                        <option value="CPGE">Prépa (CPGE)</option>
+                        <option value="ECOLE">École spécialisée</option>
+                    </select>
+                </div>
+
+                <div class="form-group inline">
+                    <label for="q-city">Ville / académie souhaitée</label>
+                    <input type="text" id="q-city" placeholder="Ex : Paris, Lyon, Lille...">
+                </div>
+
+                <div class="form-group inline">
+                    <label for="q-rythme">Rythme que tu recherches</label>
+                    <select id="q-rythme">
+                        <option value="">Peu importe</option>
+                        <option value="selectif">Très sélectif / rythme soutenu</option>
+                        <option value="equilibre">Équilibré (théorie + pratique)</option>
+                        <option value="pratique">Très pratique (alternance, stages)</option>
+                    </select>
+                </div>
+
+                <button id="orientation-submit" class="parcoursup-btn small-btn">
+                    Proposer des voeux adaptés
+                </button>
+            </div>
+        </div>
+
+        <div class="tool-card">
+            <div class="tool-card-header">
+                <div>
+                    <h2>Mes voeux</h2>
+                    <p class="tool-subtitle">
+                        Visualise et organise les formations que tu as ajoutées.
+                    </p>
+                </div>
+                <span id="voeux-count" class="badge">0</span>
+            </div>
+
+            <div id="voeux-empty" class="empty-state">
+                Aucun voeu pour l’instant.<br>
+                Clique sur une formation puis sur
+                <strong>“Enregistrer et confirmer le voeu”</strong> pour l’ajouter ici.
+            </div>
+
+            <ul id="voeux-list" class="voeux-list"></ul>
+        </div>
+    </section>
+
+
+    <section class="results-section">
+        <div id="stats" class="stats"></div>
+        <div id="results-grid" class="cards-grid"></div>
+        <div id="loader" class="loader"></div>
+        <div style="text-align: center;">
+            <button id="load-more-btn" class="load-more-btn" style="display: none;">Voir plus de résultats</button>
+        </div>
+    </section>
+
+    <div id="school-modal" class="modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <span id="close-school-btn" class="close-btn">&times;</span>
+                <h2 id="modal-title">Nom Etablissement</h2>
+                <p id="modal-formation">Formation</p>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-link active" onclick="switchTab('info')">Fiche Formation</button>
+                <button class="tab-link" onclick="switchTab('dossier')">Mon Dossier</button>
+            </div>
+
+            <div class="tab-content-container">
+                <div id="tab-info" class="tab-content active">
+                    <p class="info-row"><strong>Localisation :</strong> <span id="modal-city">...</span></p>
+                    <p class="info-row"><strong>Académie :</strong> <span id="modal-acad">...</span></p>
+
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <strong>Capacité</strong>
+                            <span id="modal-places">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Taux d'accès</strong>
+                            <span id="modal-taux">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-dossier" class="tab-content">
+
+                    <h3 class="section-title">1. Résultats scolaires</h3>
+                    <div class="file-upload-container">
+                        <div id="drop-zone" class="drop-zone">
+                            <p>📂 Glissez vos bulletins (PDF, JPG) ou cliquez ici</p>
+                            <input type="file" id="file-input" hidden>
+                        </div>
+
+                        <div id="analysis-result" class="analysis-box" style="display: none;">
+                            <div id="analysis-loader" class="mini-loader"></div>
+                            <div id="analysis-content" style="display:none;">
+                                <h4>📊 Analyse automatique</h4>
+                                <p><strong>Moyenne détectée :</strong> <span id="detected-grade"
+                                        class="grade-badge">--/20</span></p>
+                                <p><strong>Appréciation IA :</strong> <span id="detected-comment">...</span></p>
+                                <p style="font-size:0.8rem; color:#666; margin-top:5px;">✅ Document validé et joint au
+                                    dossier.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">2. Projet de formation</h3>
+                    <div class="form-group">
+                        <label for="input-lettre">Lettre de motivation</label>
+                        <textarea id="input-lettre"
+                            placeholder="Madame, Monsieur, je souhaite intégrer votre établissement..."></textarea>
+                    </div>
+
+                    <h3 class="section-title">3. Activités et centres d'intérêt</h3>
+                    <div class="form-group">
+                        <label for="input-cv">Expériences et engagements</label>
+                        <textarea id="input-cv" placeholder="Engagements, expériences, bénévolat..."></textarea>
+                    </div>
+
+                    <button id="submit-dossier-btn" class="parcoursup-btn">
+                        Enregistrer et confirmer le voeu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <span id="close-auth-btn" class="close-btn">&times;</span>
+                <h2 style="color:var(--blue-france); margin:0;">Espace Candidat</h2>
+            </div>
+            <div class="tabs">
+                <button class="tab-link active" onclick="switchAuthTab('login')">Connexion</button>
+                <button class="tab-link" onclick="switchAuthTab('register')">Inscription</button>
+            </div>
+            <div class="tab-content-container">
+                <div id="auth-tab-login" class="tab-content active">
+                    <div class="form-group">
+                        <label>Numéro de dossier (INE)</label>
+                        <input type="text" id="login-ine" placeholder="Ex: 123456">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <input type="password" id="login-pwd" placeholder="Votre mot de passe">
+                    </div>
+                    <button id="btn-login-action" class="parcoursup-btn">Me connecter</button>
+                    <p id="login-error" class="error-msg">Identifiants incorrects.</p>
+                </div>
+                <div id="auth-tab-register" class="tab-content">
+                    <div class="form-group">
+                        <label>Numéro INE</label>
+                        <input type="text" id="reg-ine" placeholder="Choisissez un identifiant">
+                    </div>
+                    <div class="form-group">
+                        <label>Nom et Prénom</label>
+                        <input type="text" id="reg-name" placeholder="Ex: DUPONT Thomas">
+                    </div>
+                    <div class="form-group">
+                        <label>Mot de passe</label>
+                        <input type="password" id="reg-pwd" placeholder="Créez un mot de passe">
+                    </div>
+                    <button id="btn-register-action" class="parcoursup-btn">Créer mon compte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
